@@ -92,51 +92,63 @@ if (addressMapContainer) {
 // if places map is shown (the one right below search bar), make it clickable
 if (placesMapContainer) {
     const mapWrapperLinkEl = document.createElement('a');
-    mapWrapperLinkEl.text = 'OPEN IN MAPS';
+    mapWrapperLinkEl.text = 'Open in Maps';
     mapWrapperLinkEl.style.cssText = `
-        font-size: 32px;
+        opacity: 0;
+        font-size: 18px;
         position: absolute;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.85);
+        background-color: #303134;
         text-align: center;
-        color: #fff;
+        color: #e8eaed;
         cursor: pointer;
-        left: 0;
-        right: 0;
-        height: 60px;
-        line-height: 60px;
+        left: calc(50% - 260px / 2);
+        width: 218px;
+        padding: 12px;
+        margin: 8px;
+        line-height: 24px;
+        border-radius: 20px;
         text-decoration: none; /* Removes underline from link */
-        border: 1px solid rgba(255, 255, 255, 0.2); /* Adds a subtle border */
-        transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for hover effects */
+        border: 1px solid #3c4043; /* Adds a subtle border */
+        transition: opacity 0.3s ease; /* Smooth transition for hover effects */
         `;
 
     placesMapContainer.style.position = 'relative';
     mapWrapperLinkEl && (mapWrapperLinkEl.href = mapsLink);
     placesMapContainer.append(mapWrapperLinkEl);
+    window.setTimeout(function() {
+      mapWrapperLinkEl.style.opacity = '1';
+    }, 100); 
 }
     
 // if "green tinted country map" is shown (the one that appears below search bar), add a new button within that map that allows user to open it 
 // in google maps instead while persisting the normal behavior of extending the map container if clicked within the UI map element
 if (countryMapContainer) {
     const mapWrapperLinkEl = document.createElement('a');
-    mapWrapperLinkEl.text = 'OPEN IN MAPS';
+    mapWrapperLinkEl.text = 'Open in Maps';
     mapWrapperLinkEl.style.cssText = `
-        font-size: 32px;
+        opacity: 0;
+        font-size: 18px;
         position: absolute;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.85);
+        background-color: #303134;
         text-align: center;
-        color: #fff;
+        color: #e8eaed;
         cursor: pointer;
-        left: 0;
-        right: 0;
-        height: 100px;
-        line-height: 100px;
+        left: calc(50% - 260px / 2);
+        width: 218px;
+        padding: 12px;
+        margin: 8px;
+        line-height: 24px;
+        border-radius: 20px;
         text-decoration: none; /* Removes underline from link */
-        border: 1px solid rgba(255, 255, 255, 0.2); /* Adds a subtle border */
-        transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for hover effects */
+        border: 1px solid #3c4043; /* Adds a subtle border */
+        transition: opacity 0.3s ease; /* Smooth transition for hover effects */
         `;
 
     mapWrapperLinkEl && (mapWrapperLinkEl.href = mapsLink);
     countryMapContainer.append(mapWrapperLinkEl);
+    window.setTimeout(function() {
+      mapWrapperLinkEl.style.opacity = '1';
+    }, 100); 
 }
