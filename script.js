@@ -98,7 +98,7 @@ if (placesMapContainer) {
         font-size: 18px;
         position: absolute;
         bottom: 0;
-        background-color: #303134;
+        background-color: #202124;
         text-align: center;
         color: #e8eaed;
         cursor: pointer;
@@ -131,7 +131,7 @@ if (countryMapContainer) {
         font-size: 18px;
         position: absolute;
         bottom: 0;
-        background-color: #303134;
+        background-color: #202124;
         text-align: center;
         color: #e8eaed;
         cursor: pointer;
