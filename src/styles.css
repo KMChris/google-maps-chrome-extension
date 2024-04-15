@@ -1,0 +1,23 @@
+.open-in-maps-extension-button {
+    opacity: 0;
+    font-size: 18px;
+    position: absolute;
+    bottom: 0;
+    background-color: #202124;
+    text-align: center;
+    color: #e8eaed;
+    cursor: pointer;
+    left: calc(50% - 260px / 2);
+    width: 218px;
+    padding: 12px;
+    margin: 8px;
+    line-height: 24px;
+    border-radius: 20px;
+    text-decoration: none;
+    border: 1px solid #3c4043;
+    transition: opacity 0.3s ease;
+}
+
+.open-in-maps-extension-button:visited {
+    color: #e8eaed;
+}

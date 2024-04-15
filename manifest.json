@@ -2,17 +2,17 @@
   "author": "m.rakowski91@gmail.com",
   "name": "Re-introduce google maps links to search page",
   "description": "Readds google maps link to the search page and makes map thumbnail clickable.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "manifest_version": 3,
   "icons": {
-    "16": "icon16.png",
-    "32": "icon32.png",
-    "64": "icon64.png",
-    "128": "icon128.png"
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "64": "assets/icon64.png",
+    "128": "assets/icon128.png"
   },
   "action": {
-    "default_icon": "icon-pin.png",
-    "default_popup": "index.html"
+    "default_icon": "assets/icon-pin.png",
+    "default_popup": "src/index.html"
   },
   "content_scripts": [
     {
@@ -205,7 +205,8 @@
         "*://*.google.co.zw/*",
         "*://*.google.cat/*"
       ],
-      "js": ["script.js"]
+      "js": ["src/script.js"],
+      "css": ["src/styles.css"]
     }
   ]
 }
