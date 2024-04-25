@@ -21,4 +21,22 @@
 .open-in-maps-extension-button:visited {
     color: #e8eaed;
 }
+
+.open-in-maps-extension-button--small {
+    border-radius: 12px;
+    border: 2px solid #3a3f50;
+    box-sizing: content-box;
+    color: #fff;
+    font-size: 14px;
+    height: 30px;
+    line-height: 30px;
+    margin-right: 8px;
+    padding: 0 5px;
+}
+
+.open-in-maps-extension-button--small:hover, 
+.open-in-maps-extension-button--small:focus, 
+.open-in-maps-extension-button--small:visited {
+    color: #fff;
+}
     

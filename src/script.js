@@ -6,7 +6,7 @@ const tabsContainer = document.querySelector('.crJ18e'); // tabs right below the
 const smallMapThumbnailElement = ['.lu-fs', '.V1GY4c']; // small thumbnail with a map, usually on the right side
 const addressMapContainer = document.querySelector('#pimg_1');
 const placesMapContainer = document.querySelector('.S7dMR')
-const countryMapContainer = document.querySelector('.CYJS5e.W0urI.SodP3b.GHMsie.ZHugbd.UivI7b > .zMVLkf');
+const countryMapContainer = document.querySelector('.zMVLkf');
 
 // build simple URL search query from search params
 const searchQuery = new URLSearchParams(window.location.search).get('q');
@@ -14,9 +14,38 @@ const parts = new URL(window.location).hostname.split('.');
 const topLevelDomainCode = parts[parts.length - 1];
 const mapsLink = `http://maps.google.${topLevelDomainCode}/maps?q=${searchQuery}`;
 
+
+// We use this to avoid duplicate "Open in maps" buttons in certain google UI variants 
+// (e.g google images view)
+let alreadyHasMapsButtonAppended = false;
+
+// if tabs exist, add the maps tab
+// we start with "tabs" variant first because its only used for the top-most navigation
+// while round buttons are also used as subnavigation in search results, images etc.
+if (tabsContainer) {
+    const tabsButton = document.createElement('a');
+    tabsButton.classList.add('open-in-maps-extension-button--small');
+
+    const mapSpan = document.createElement('span');
+    mapSpan.classList.add('YmvwI');
+    mapSpan.textContent = 'Open in Maps';
+
+    tabsButton.appendChild(mapSpan);
+    tabsButton && (tabsButton.href = mapsLink);
+
+    if (tabsContainer.children.length > 0) {
+        tabsContainer.insertBefore(tabsButton, tabsContainer.firstElementChild);
+    } else {
+        tabsContainer.appendChild(tabsButton);
+    }
+
+    alreadyHasMapsButtonAppended = true;
+}
+
 // ---------------------------
-// if buttons exist, add the maps button
-if (buttonContainer) {
+// if buttons exist -AND- we HAVE NOT appended a different variant already,
+// add the maps round button
+if (buttonContainer && !alreadyHasMapsButtonAppended) {
     const mapsButton = document.createElement('a');
     mapsButton.classList.add('nPDzT', 'T3FoJb');
 
@@ -34,26 +63,10 @@ if (buttonContainer) {
     
     mapsButton && (mapsButton.href = mapsLink);
     buttonContainer.prepend(mapsButton);
+
+    alreadyHasMapsButtonAppended = true;
 }
 
-// if tabs exist, add the maps tab
-if (tabsContainer) {
-    const tabsButton = document.createElement('a');
-    tabsButton.classList.add('LatpMc', 'nPDzT', 'T3FoJb');
-
-    const mapSpan = document.createElement('span');
-    mapSpan.classList.add('YmvwI');
-    mapSpan.textContent = 'Maps';
-
-    tabsButton.appendChild(mapSpan);
-    tabsButton && (tabsButton.href = mapsLink);
-
-    if (tabsContainer.children.length > 0) {
-        tabsContainer.insertBefore(tabsButton, tabsContainer.firstElementChild.nextSibling);
-    } else {
-        tabsContainer.appendChild(tabsButton);
-    }
-}
 
 // if map thumbnail exists
 if (smallMapThumbnailElement.length) {
