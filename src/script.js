@@ -1,3 +1,12 @@
+// builds URL search query from search params, handles different domains scenarios
+function buildMapsLink() {
+    const searchQuery = new URLSearchParams(window.location.search).get('q');
+    const currentUrl = new URL(window.location);
+    const hostname = currentUrl.hostname;
+    const mapsHostname = hostname.startsWith('www.') ? hostname.replace('www.', 'maps.') : `maps.${hostname}`;
+    return `${currentUrl.protocol}//${mapsHostname}/maps?q=${searchQuery}`;
+}
+
 // DOM elements (all of these can possibly exist due to google's AB testing changing their UI)
 const buttonContainer = document.querySelector('.IUOThf'); // round buttons right below the search input
 const tabsContainer = document.querySelector('.crJ18e'); // tabs right below the search input
@@ -8,21 +17,28 @@ const addressMapContainer = document.querySelector('#pimg_1');
 const placesMapContainer = document.querySelector('.S7dMR')
 const countryMapContainer = document.querySelector('.zMVLkf');
 
-// build simple URL search query from search params
-const searchQuery = new URLSearchParams(window.location.search).get('q');
-const parts = new URL(window.location).hostname.split('.');
-const topLevelDomainCode = parts[parts.length - 1];
-const mapsLink = `http://maps.google.${topLevelDomainCode}/maps?q=${searchQuery}`;
-
-
-// We use this to avoid duplicate "Open in maps" buttons in certain google UI variants 
-// (e.g google images view)
+// We use this to avoid duplicate "Open in maps" buttons in certain situations
 let alreadyHasMapsButtonAppended = false;
+
+function hasMapTabAlreadyDisplayed() {
+    const links = tabsContainer.getElementsByTagName('a');
+    let tabAlreadyDisplayed = false;
+
+    for (let i = 0; i < links.length; i++) {
+        if (links[i].href.includes('/maps')) {
+            tabAlreadyDisplayed = true;
+            break;
+        }
+    }
+
+    alreadyHasMapsButtonAppended = tabAlreadyDisplayed;
+    return tabAlreadyDisplayed;
+}
 
 // if tabs exist, add the maps tab
 // we start with "tabs" variant first because its only used for the top-most navigation
 // while round buttons are also used as subnavigation in search results, images etc.
-if (tabsContainer) {
+if (tabsContainer && !hasMapTabAlreadyDisplayed()) {
     const tabsButton = document.createElement('a');
     tabsButton.classList.add('open-in-maps-extension-button--small');
 
@@ -31,14 +47,9 @@ if (tabsContainer) {
     mapSpan.textContent = 'Open in Maps';
 
     tabsButton.appendChild(mapSpan);
-    tabsButton && (tabsButton.href = mapsLink);
+    tabsButton && (tabsButton.href = buildMapsLink());
 
-    if (tabsContainer.children.length > 0) {
-        tabsContainer.insertBefore(tabsButton, tabsContainer.firstElementChild);
-    } else {
-        tabsContainer.appendChild(tabsButton);
-    }
-
+    tabsContainer.appendChild(tabsButton);
     alreadyHasMapsButtonAppended = true;
 }
 
@@ -61,7 +72,7 @@ if (buttonContainer && !alreadyHasMapsButtonAppended) {
     mapDiv.appendChild(mapSpan);
     mapsButton.appendChild(mapDiv);
     
-    mapsButton && (mapsButton.href = mapsLink);
+    mapsButton && (mapsButton.href = buildMapsLink());
     buttonContainer.prepend(mapsButton);
 
     alreadyHasMapsButtonAppended = true;
@@ -78,11 +89,11 @@ if (smallMapThumbnailElement.length) {
             if (targettedElement) {
                 if (targettedElement.parentNode.tagName.toLowerCase() === 'a') {
                     // if its already an a tag, just update its href attribute with the generated maps link
-                    targettedElement.parentNode.href = mapsLink;
+                    targettedElement.parentNode.href = buildMapsLink();
                 } else {
                     // otherwise create a new a tag with href attribute set to generated maps link, then wrap it around the element
                     const wrapperLink = document.createElement('a');
-                    wrapperLink.href = mapsLink;
+                    wrapperLink.href = buildMapsLink();
                     targettedElement.parentNode.insertBefore(wrapperLink, targettedElement);
                     targettedElement.parentNode.removeChild(targettedElement);
                     wrapperLink.appendChild(targettedElement);
@@ -96,7 +107,7 @@ if (smallMapThumbnailElement.length) {
 // if address map is shown (the one right below search bar), make it clickable
 if (addressMapContainer) {
     const mapWrapperLinkEl = document.createElement('a');
-    mapWrapperLinkEl && (mapWrapperLinkEl.href = mapsLink);
+    mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
 
     addressMapContainer.parentElement.insertBefore(mapWrapperLinkEl, addressMapContainer);
     mapWrapperLinkEl.appendChild(addressMapContainer);
@@ -109,7 +120,7 @@ if (placesMapContainer) {
     mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
         
     placesMapContainer.style.position = 'relative';
-    mapWrapperLinkEl && (mapWrapperLinkEl.href = mapsLink);
+    mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
     placesMapContainer.append(mapWrapperLinkEl);
     window.setTimeout(function() {
         mapWrapperLinkEl.style.opacity = '1';
@@ -123,7 +134,7 @@ if (countryMapContainer) {
     mapWrapperLinkEl.text = 'Open in Maps';
     mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
 
-    mapWrapperLinkEl && (mapWrapperLinkEl.href = mapsLink);
+    mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
     countryMapContainer.append(mapWrapperLinkEl);
     window.setTimeout(function() {
         mapWrapperLinkEl.style.opacity = '1';
