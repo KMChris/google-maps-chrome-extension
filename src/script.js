@@ -40,14 +40,14 @@ function hasMapTabAlreadyDisplayed() {
 // while round buttons are also used as subnavigation in search results, images etc.
 if (tabsContainer && !hasMapTabAlreadyDisplayed()) {
     const tabsButton = document.createElement('a');
-    tabsButton.classList.add('open-in-maps-extension-button--small');
 
     const mapSpan = document.createElement('span');
-    mapSpan.classList.add('YmvwI');
+    mapSpan.classList.add('BaegVc', 'YmvwI');
     mapSpan.textContent = 'Open in Maps';
 
     tabsButton.appendChild(mapSpan);
     tabsButton && (tabsButton.href = buildMapsLink());
+    tabsButton.classList.add('remove-text-underline');
 
     tabsContainer.appendChild(tabsButton);
     alreadyHasMapsButtonAppended = true;
