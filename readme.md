@@ -8,5 +8,6 @@ If you have any issues with the extension or want to suggest a new feature, plea
 Thanks!
 
 
-For OPERA users:
+-------
+**For OPERA users:**
 You need to go to your extension settings in Opera, find this extension and tick the "Allow access to search page results" then refresh the page.
