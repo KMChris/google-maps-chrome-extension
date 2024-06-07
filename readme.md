@@ -6,3 +6,7 @@ It's been created for transparency sake so you know what is being installed on y
 
 If you have any issues with the extension or want to suggest a new feature, please let me know in the comments on the extension page or in this repository by [creating an issue](https://github.com/mrakowski0/readd-gmaps-links-chrome-extension/issues). Pull requests are also welcome.
 Thanks!
+
+
+For OPERA users:
+You need to go to your extension settings in Opera, find this extension and tick the "Allow access to search page results" then refresh the page.
