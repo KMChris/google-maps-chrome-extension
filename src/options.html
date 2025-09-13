@@ -8,17 +8,23 @@
   </head>
   <body>
     <div class="container">
-    <h1 id="title"></h1>
-
-    <div class="row">
-      <label>
-        <input type="checkbox" id="disableOverlay" />
-        <span id="label_disableOverlay"></span>
-      </label>
+    <div class="card" tabindex="0">
+      <div class="header">
+        <img src="../assets/icon-pin.png" alt="" class="icon-img" />
+        <h1 id="title"></h1>
+      </div>
+      <div class="row">
+        <label class="switch has-tooltip" data-tooltip="">
+          <input type="checkbox" id="showOverlay" />
+          <span class="slider" aria-hidden="true"></span>
+        </label>
+        <span id="label_showOverlay" class="switch-label"></span>
+      </div>
+      <div class="row">
+        <button id="saveBtn"></button>
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      </div>
     </div>
-
-    <button id="saveBtn"></button>
-    <div id="toast" class="toast"></div>
 
     <script src="options.js"></script>
     </div>

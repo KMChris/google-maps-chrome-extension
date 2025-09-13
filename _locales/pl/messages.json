@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "Przywróć link do Map Google na stronie wyników"
+    "message": "Przywróć link do Map Google"
   },
   "extensionDescription": {
     "message": "Przywraca link do Map Google na stronie wyszukiwania i umożliwia klikanie miniatur map."
@@ -17,8 +17,17 @@
   "optionsTitle": {
     "message": "Linki do Map Google — Opcje"
   },
-  "option_disableOverlay_label": {
-    "message": "Wyłącz przycisk nakładki na mapach (mapy mają być po prostu klikalne)"
+  "option_showOverlay_label": {
+    "message": "Pokaż przycisk nakładki na mapach"
+  },
+  "toggleOverlay_tooltip": {
+    "message": "Pokazuje dodatkowy przycisk na mapach do bezpośredniego otwierania wyników w Mapach Google"
+  },
+  "aboutText1": {
+    "message": "Rozszerzenie przywraca przycisk/kartę Map w wynikach wyszukiwania Google i umożliwia klikanie miniatur map."
+  },
+  "aboutText2": {
+    "message": "W krajach UE oryginalny przycisk mógł zostać usunięty ze względu na przepisy. Możesz włączyć nakładkę, aby szybciej otwierać wyniki w Mapach Google."
   },
   "options_save": {
     "message": "Zapisz"

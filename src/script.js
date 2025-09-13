@@ -1,20 +1,8 @@
 setTimeout(() => {
 // i18n helper and settings
 const t = (key) => (typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getMessage(key) : '') || key;
-let disableOverlay = false;
+let showOverlay = false; // default off
 
-// Load user preference synchronously best-effort (content scripts are fast; we proceed either way)
-try {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        chrome.storage.sync.get({ disableOverlay: true }, (res) => {
-            disableOverlay = Boolean(res.disableOverlay);
-            // After we know the flag, we may hide overlays if already added
-            if (disableOverlay) {
-                removeOverlaysResetPositions();
-            }
-        });
-    }
-} catch {}
 // builds URL search query from search params, handles different domains scenarios
 function buildMapsLink() {
     const searchQuery = new URLSearchParams(window.location.search).get('q');
@@ -62,9 +50,9 @@ function removeOverlaysResetPositions() {
     });
 }
 
-// Attempt to inject overlay buttons based on current disableOverlay flag
+// Attempt to inject overlay buttons based on current showOverlay flag
 function attemptOverlayInjection() {
-    if (disableOverlay) return; // Respect user setting
+    if (!showOverlay) return; // Respect user setting
 
     // if address map is shown (the one right below search bar), make it clickable
     if (addressMapContainer && !addressMapContainer.querySelector('.open-in-maps-extension-button')) {
@@ -192,17 +180,17 @@ if (smallMapThumbnailElement.length) {
     }, 0)
 }
 
-// Inject overlays after settings load (or soon after)
+// Inject overlays after settings load (single read)
 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-    chrome.storage.sync.get({ disableOverlay: true }, (res) => {
-        disableOverlay = Boolean(res.disableOverlay);
+    chrome.storage.sync.get({ showOverlay: false }, (res) => {
+        showOverlay = Boolean(res.showOverlay);
         attemptOverlayInjection();
     });
     if (chrome.storage.onChanged) {
         chrome.storage.onChanged.addListener((changes, area) => {
-            if (area === 'sync' && changes.disableOverlay) {
-                disableOverlay = Boolean(changes.disableOverlay.newValue);
-                if (disableOverlay) {
+            if (area === 'sync' && changes.showOverlay) {
+                showOverlay = Boolean(changes.showOverlay.newValue);
+                if (!showOverlay) {
                     removeOverlaysResetPositions();
                 } else {
                     attemptOverlayInjection();
