@@ -1,0 +1,29 @@
+{
+  "extensionName": {
+    "message": "Re-introduce Google Maps link to search page"
+  },
+  "extensionDescription": {
+    "message": "Readds Google Maps link to the search page and makes map thumbnail clickable."
+  },
+  "mapsTabLabel": {
+    "message": "Maps"
+  },
+  "mapsBubbleLabel": {
+    "message": "Maps"
+  },
+  "openInMaps": {
+    "message": "Open in Maps"
+  },
+  "optionsTitle": {
+    "message": "Google Maps Links — Options"
+  },
+  "option_disableOverlay_label": {
+    "message": "Disable overlay button on maps (make maps just clickable)"
+  },
+  "options_save": {
+    "message": "Save"
+  },
+  "options_saved_toast": {
+    "message": "Saved"
+  }
+}

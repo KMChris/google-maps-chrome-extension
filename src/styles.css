@@ -1,26 +1,34 @@
 .open-in-maps-extension-button {
     opacity: 0;
-    font-size: 18px;
+    font-size: 16px;
     position: absolute;
     bottom: 0;
-    background-color: #202124;
     text-align: center;
-    color: #e8eaed;
     cursor: pointer;
     left: calc(50% - 202px / 2);
     width: 160px;
-    padding: 12px;
+    padding: 10px 12px;
     margin: 8px;
-    line-height: 24px;
-    border-radius: 20px;
+    line-height: 22px;
+    border-radius: 16px;
     text-decoration: none;
+    transition: opacity 0.3s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
+
+    /* Theming via prefers-color-scheme (mirrors ui.css variables) */
+    background-color: #202124;
+    color: #e8eaed;
     border: 1px solid #3c4043;
-    transition: opacity 0.3s ease;
 }
 
-.open-in-maps-extension-button:visited {
-    color: #e8eaed;
+@media (prefers-color-scheme: light) {
+    .open-in-maps-extension-button {
+        background-color: #ffffff;
+        color: #202124;
+        border-color: #dadce0;
+    }
 }
+
+.open-in-maps-extension-button:visited { color: inherit; }
 
 .open-in-maps-extension-button--small {
     border-radius: 12px;

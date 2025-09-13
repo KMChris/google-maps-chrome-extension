@@ -1,4 +1,20 @@
 setTimeout(() => {
+// i18n helper and settings
+const t = (key) => (typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getMessage(key) : '') || key;
+let disableOverlay = false;
+
+// Load user preference synchronously best-effort (content scripts are fast; we proceed either way)
+try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        chrome.storage.sync.get({ disableOverlay: true }, (res) => {
+            disableOverlay = Boolean(res.disableOverlay);
+            // After we know the flag, we may hide overlays if already added
+            if (disableOverlay) {
+                removeOverlaysResetPositions();
+            }
+        });
+    }
+} catch {}
 // builds URL search query from search params, handles different domains scenarios
 function buildMapsLink() {
     const searchQuery = new URLSearchParams(window.location.search).get('q');
@@ -36,6 +52,62 @@ function hasMapTabAlreadyDisplayed() {
     return tabAlreadyDisplayed;
 }
 
+function removeOverlaysResetPositions() {
+    document.querySelectorAll('.open-in-maps-extension-button').forEach((el) => {
+        const parent = el.parentElement;
+        el.remove();
+        if (parent && (parent === addressMapContainer || parent === placesMapContainer || parent === countryMapContainer)) {
+            parent.style.position = '';
+        }
+    });
+}
+
+// Attempt to inject overlay buttons based on current disableOverlay flag
+function attemptOverlayInjection() {
+    if (disableOverlay) return; // Respect user setting
+
+    // if address map is shown (the one right below search bar), make it clickable
+    if (addressMapContainer && !addressMapContainer.querySelector('.open-in-maps-extension-button')) {
+        const mapWrapperLinkEl = document.createElement('a');
+        mapWrapperLinkEl.text = t('openInMaps') || 'Open in Maps';
+        mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
+        addressMapContainer.style.position = 'relative';
+    
+        mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
+        // Add the button as an overlay instead of wrapping the entire container
+        addressMapContainer.appendChild(mapWrapperLinkEl);
+        window.setTimeout(function() {
+            mapWrapperLinkEl.style.opacity = '1';
+        }, 100);
+    }
+
+    // if places map is shown (the one right below search bar), make it clickable
+    if (placesMapContainer && !placesMapContainer.querySelector('.open-in-maps-extension-button')) {
+        const mapWrapperLinkEl = document.createElement('a');
+        mapWrapperLinkEl.text = t('openInMaps') || 'Open in Maps';
+        mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
+
+        placesMapContainer.style.position = 'relative';
+        mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
+        placesMapContainer.append(mapWrapperLinkEl);
+        window.setTimeout(function() {
+            mapWrapperLinkEl.style.opacity = '1';
+        }, 100);
+    }
+
+    // if "green tinted country map" is shown, add a new button within that map
+    if (countryMapContainer && !countryMapContainer.querySelector('.open-in-maps-extension-button')) {
+        const mapWrapperLinkEl = document.createElement('a');
+        mapWrapperLinkEl.text = t('openInMaps') || 'Open in Maps';
+        mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
+        mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
+        countryMapContainer.append(mapWrapperLinkEl);
+        window.setTimeout(function() {
+            mapWrapperLinkEl.style.opacity = '1';
+        }, 100);
+    }
+}
+
 // if tabs exist, add the maps tab
 // we start with "tabs" variant first because its only used for the top-most navigation
 // while round buttons are also used as subnavigation in search results, images etc.
@@ -46,7 +118,8 @@ if (tabsContainer && !hasMapTabAlreadyDisplayed()) {
 
     const mapSpan = document.createElement('span');
     mapSpan.classList.add('R1QWuf');
-    mapSpan.textContent = 'Open in Maps';
+    // In the tabs we want short label like other tabs
+    mapSpan.textContent = t('mapsTabLabel') || 'Maps';
 
     const innerDiv = document.createElement('div');
     innerDiv.classList.add('mXwfNd');
@@ -82,7 +155,7 @@ if (buttonContainer && !alreadyHasMapsButtonAppended) {
     const mapSpan = document.createElement('span');
     mapSpan.classList.add('FMKtTb', 'UqcIvb');
     mapSpan.jsname = 'pIvPIe';
-    mapSpan.textContent = 'Maps';
+    mapSpan.textContent = t('mapsBubbleLabel') || 'Maps';
 
     mapDiv.appendChild(mapSpan);
     mapsButton.appendChild(mapDiv);
@@ -119,49 +192,26 @@ if (smallMapThumbnailElement.length) {
     }, 0)
 }
 
-// if address map is shown (the one right below search bar), make it clickable
-if (addressMapContainer) {
-    const mapWrapperLinkEl = document.createElement('a');
-    mapWrapperLinkEl.text = 'Open in Maps';
-    mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
-    addressMapContainer.style.position = 'relative';
-
-    mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
-    
-    // Add the button as an overlay instead of wrapping the entire container
-    addressMapContainer.appendChild(mapWrapperLinkEl);
-    window.setTimeout(function() {
-        mapWrapperLinkEl.style.opacity = '1';
-    }, 100); 
-}
-
-// if places map is shown (the one right below search bar), make it clickable
-if (placesMapContainer) {
-    const mapWrapperLinkEl = document.createElement('a');
-    mapWrapperLinkEl.text = 'Open in Maps';
-    mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
-
-        
-    placesMapContainer.style.position = 'relative';
-    mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
-    placesMapContainer.append(mapWrapperLinkEl);
-    window.setTimeout(function() {
-        mapWrapperLinkEl.style.opacity = '1';
-    }, 100); 
-}
-    
-// if "green tinted country map" is shown (the one that appears below search bar), add a new button within that map that allows user to open it 
-// in google maps instead while persisting the normal behavior of extending the map container if clicked within the UI map element
-if (countryMapContainer) {
-    const mapWrapperLinkEl = document.createElement('a');
-    mapWrapperLinkEl.text = 'Open in Maps';
-    mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
-
-
-    mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
-    countryMapContainer.append(mapWrapperLinkEl);
-    window.setTimeout(function() {
-        mapWrapperLinkEl.style.opacity = '1';
-    }, 100); 
+// Inject overlays after settings load (or soon after)
+if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    chrome.storage.sync.get({ disableOverlay: true }, (res) => {
+        disableOverlay = Boolean(res.disableOverlay);
+        attemptOverlayInjection();
+    });
+    if (chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'sync' && changes.disableOverlay) {
+                disableOverlay = Boolean(changes.disableOverlay.newValue);
+                if (disableOverlay) {
+                    removeOverlaysResetPositions();
+                } else {
+                    attemptOverlayInjection();
+                }
+            }
+        });
+    }
+} else {
+    // Fallback
+    attemptOverlayInjection();
 }
 }, 250);

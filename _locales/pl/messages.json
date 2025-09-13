@@ -1,0 +1,29 @@
+{
+  "extensionName": {
+    "message": "Przywróć link do Map Google na stronie wyników"
+  },
+  "extensionDescription": {
+    "message": "Przywraca link do Map Google na stronie wyszukiwania i umożliwia klikanie miniatur map."
+  },
+  "mapsTabLabel": {
+    "message": "Mapy"
+  },
+  "mapsBubbleLabel": {
+    "message": "Mapy"
+  },
+  "openInMaps": {
+    "message": "Otwórz w Mapach"
+  },
+  "optionsTitle": {
+    "message": "Linki do Map Google — Opcje"
+  },
+  "option_disableOverlay_label": {
+    "message": "Wyłącz przycisk nakładki na mapach (mapy mają być po prostu klikalne)"
+  },
+  "options_save": {
+    "message": "Zapisz"
+  },
+  "options_saved_toast": {
+    "message": "Zapisano"
+  }
+}
