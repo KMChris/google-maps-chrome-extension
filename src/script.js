@@ -17,9 +17,7 @@ function buildMapsLink() {
     return `${currentUrl.protocol}//${mapsHostname}/maps?q=${searchQuery}`;
 }
 
-// DOM elements (all of these can possibly exist due to google's AB testing changing their UI)
-const buttonContainer = document.querySelector('.IUOThf'); // round "bubble" buttons right below the search input
-const tabsContainer = document.querySelector('.beZ0tf'); // tabs right below the search input
+// DOM elements are queried on demand (Google often A/B tests their UI and nodes can appear later)
 
 // Using selector array as sometimes multiple different selectors are used for the same element depending on the variant rendered by Google
 const smallMapThumbnailElement = ['.lu-fs', '.V1GY4c']; // small thumbnail with a map, usually on the right side
@@ -27,7 +25,8 @@ const smallMapThumbnailElement = ['.lu-fs', '.V1GY4c']; // small thumbnail with 
 // We use this to avoid duplicate "Open in maps" buttons in certain situations
 let alreadyHasMapsButtonAppended = false;
 
-function hasMapTabAlreadyDisplayed() {
+function hasMapTabAlreadyDisplayed(tabsContainer) {
+    if (!tabsContainer) return false;
     const links = tabsContainer.getElementsByTagName('a');
     let tabAlreadyDisplayed = false;
 
@@ -240,8 +239,19 @@ function stopObservingActionBars() {
 
 function injectTopUiAndThumbnails() {
     if (!enableExtension) return;
+    // Query fresh each time in case DOM changed
+    const tabsContainer = document.querySelector('.beZ0tf'); // tabs right below the search input
+    const buttonContainer = document.querySelector('.IUOThf'); // round "bubble" buttons right below the search input
+    // Recompute whether a Maps entry already exists (native or our injected)
+    alreadyHasMapsButtonAppended = false;
+    if (document.querySelector('.gmaps-ext-tab, .gmaps-ext-bubble')) {
+        alreadyHasMapsButtonAppended = true;
+    } else if (tabsContainer && hasMapTabAlreadyDisplayed(tabsContainer)) {
+        // native Maps tab exists
+        alreadyHasMapsButtonAppended = true;
+    }
     // Tabs
-    if (enableMapsTab && tabsContainer && !hasMapTabAlreadyDisplayed()) {
+    if (enableMapsTab && tabsContainer && !hasMapTabAlreadyDisplayed(tabsContainer)) {
         const tabButtonWrapper = document.createElement('div');
         tabButtonWrapper.classList.add('gmaps-ext-tab');
         tabButtonWrapper.role = 'listitem';
@@ -332,6 +342,8 @@ function removeTopUiAndThumbnails() {
         document.querySelectorAll('.gmaps-ext-tab').forEach((el) => el.remove());
         // Remove our bubble button
         document.querySelectorAll('.gmaps-ext-bubble').forEach((el) => el.remove());
+        // Reset duplicate-prevention flag
+        alreadyHasMapsButtonAppended = false;
         // Unwrap thumbnails
         document.querySelectorAll('a.gmaps-ext-thumb').forEach((anchor) => {
             const parent = anchor.parentNode;
@@ -343,10 +355,9 @@ function removeTopUiAndThumbnails() {
     } catch (_) { /* no-op */ }
 }
 
-// Load settings (with legacy migration support)
+// Load settings
 if (typeof chrome !== 'undefined' && chrome.storage) {
-    const keys = ['enableExtension','enableActionButton','enableLocalActionTile'];
-    const defaults = { };
+    const keys = ['enableExtension','enableActionButton','enableMapsTab','enableLocalActionTile'];
     const readAll = (cb) => {
         const done = (syncRes = {}, localRes = {}) => {
             const pick = (k, defVal = true) => (typeof syncRes[k] === 'boolean' ? syncRes[k] : (typeof localRes[k] === 'boolean' ? localRes[k] : defVal));
@@ -423,7 +434,8 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
     }
 } else {
     // Fallback
-    enableExtension = true; enableActionButton = true; enableLocalActionTile = true;
+    enableExtension = true; enableActionButton = true; enableMapsTab = true; enableLocalActionTile = true;
+    injectTopUiAndThumbnails();
     injectActionButtons();
     injectLocalActionIcons();
     startObservingActionBars();
