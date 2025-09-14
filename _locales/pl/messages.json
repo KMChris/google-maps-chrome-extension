@@ -15,24 +15,15 @@
     "message": "Otwórz w Mapach"
   },
   "optionsTitle": {
-    "message": "Linki do Map Google — Opcje"
+    "message": "Linki do Map Google | Opcje"
   },
   "option_showOverlay_label": {
     "message": "Pokaż przycisk nakładki na mapach"
   },
-  "toggleOverlay_tooltip": {
-    "message": "Pokazuje dodatkowy przycisk na mapach do bezpośredniego otwierania wyników w Mapach Google"
-  },
   "aboutText1": {
-    "message": "Rozszerzenie przywraca przycisk/kartę Map w wynikach wyszukiwania Google i umożliwia klikanie miniatur map."
+    "message": "Otwarty projekt open-source, który przywraca kartę/przycisk Map na stronie wyników Google i umożliwia klikanie miniaturowej mapy."
   },
   "aboutText2": {
-    "message": "W krajach UE oryginalny przycisk mógł zostać usunięty ze względu na przepisy. Możesz włączyć nakładkę, aby szybciej otwierać wyniki w Mapach Google."
-  },
-  "options_save": {
-    "message": "Zapisz"
-  },
-  "options_saved_toast": {
-    "message": "Zapisano"
+    "message": "Kod źródłowy i zgłoszenia problemów znajdziesz na <a href=\"https://github.com/mrakowski0/readd-gmaps-links-chrome-extension\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>. Zapraszamy do kontrybucji."
   }
 }

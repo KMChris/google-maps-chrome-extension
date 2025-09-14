@@ -15,18 +15,15 @@
     "message": "Open in Maps"
   },
   "optionsTitle": {
-    "message": "Google Maps Links — Options"
+    "message": "Google Maps Links | Options"
   },
   "option_showOverlay_label": {
     "message": "Show overlay button on maps"
   },
-  "toggleOverlay_tooltip": {
-    "message": "Shows an extra button on maps to directly open results in Google Maps"
+  "aboutText1": {
+    "message": "Open-source extension that brings back the Google Maps tab/button on the search page and makes the small map thumbnail clickable."
   },
-  "options_save": {
-    "message": "Save"
-  },
-  "options_saved_toast": {
-    "message": "Saved"
+  "aboutText2": {
+    "message": "Source code and issue tracking are available on <a href=\"https://github.com/mrakowski0/readd-gmaps-links-chrome-extension\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>. Contributions are welcome."
   }
 }
