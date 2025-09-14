@@ -2,6 +2,7 @@ setTimeout(() => {
 // i18n helper and settings
 const t = (key) => (typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getMessage(key) : '') || key;
 let showOverlay = false; // default off
+let actionBarObserver = null;
 
 // builds URL search query from search params, handles different domains scenarios
 function buildMapsLink() {
@@ -18,9 +19,6 @@ const tabsContainer = document.querySelector('.beZ0tf'); // tabs right below the
 
 // Using selector array as sometimes multiple different selectors are used for the same element depending on the variant rendered by Google
 const smallMapThumbnailElement = ['.lu-fs', '.V1GY4c']; // small thumbnail with a map, usually on the right side
-const addressMapContainer = document.querySelector('.lu_map_section');
-const placesMapContainer = document.querySelector('.S7dMR');
-const countryMapContainer = document.querySelector('.zMVLkf');
 
 // We use this to avoid duplicate "Open in maps" buttons in certain situations
 let alreadyHasMapsButtonAppended = false;
@@ -40,59 +38,199 @@ function hasMapTabAlreadyDisplayed() {
     return tabAlreadyDisplayed;
 }
 
-function removeOverlaysResetPositions() {
-    document.querySelectorAll('.open-in-maps-extension-button').forEach((el) => {
-        const parent = el.parentElement;
-        el.remove();
-        if (parent && (parent === addressMapContainer || parent === placesMapContainer || parent === countryMapContainer)) {
-            parent.style.position = '';
+function removeActionButtons() {
+    document.querySelectorAll('.open-in-maps-action-btn').forEach((el) => el.remove());
+}
+
+function removeLocalActionIcons() {
+    document.querySelectorAll('.open-in-maps-local-action').forEach((el) => el.remove());
+}
+
+// Inject an action-style button next to the action bar (.Uekwlc.kHIBvd) instead of an overlay
+function injectActionButtons() {
+    if (!showOverlay) return; // Respect user setting
+
+    const actionBars = document.querySelectorAll('.Uekwlc.kHIBvd');
+    if (!actionBars || !actionBars.length) return;
+
+    actionBars.forEach((bar) => {
+        // Avoid duplicates
+        if (bar.querySelector('.open-in-maps-action-btn')) return;
+
+        // Try to find an existing action button to clone for consistent styling
+        const sampleBtn = bar.querySelector('.aiNDEb');
+        let newBtnWrapper;
+        if (sampleBtn) {
+            newBtnWrapper = sampleBtn.cloneNode(true);
+            // Clean JS-specific attributes
+            ['jscontroller','jsaction','jsdata','jsname','data-ved','data-hveid','data-ld','data-sfo','data-sm','data-sp'].forEach(attr => newBtnWrapper.removeAttribute(attr));
+            newBtnWrapper.setAttribute('role', 'link');
+            newBtnWrapper.setAttribute('tabindex', '0');
+            newBtnWrapper.setAttribute('aria-label', t('openInMaps') || 'Open in Maps');
+
+            // Update label text
+            const labelContainer = newBtnWrapper.querySelector('.QuU3Wb.sjVJQd div');
+            if (labelContainer) labelContainer.textContent = t('openInMaps') || 'Open in Maps';
+
+            // Update icon
+            const iconSpan = newBtnWrapper.querySelector('.d3o3Ad.gJdC8e.z1asCe.Fp7My');
+            if (iconSpan) {
+                const svg = iconSpan.querySelector('svg');
+                if (svg) {
+                    svg.innerHTML = '<path d="M12 2C8.686 2 6 4.686 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"></path>';
+                    svg.setAttribute('viewBox', '0 0 24 24');
+                    svg.setAttribute('width', '20');
+                    svg.setAttribute('height', '20');
+                    svg.setAttribute('focusable', 'false');
+                    svg.setAttribute('aria-hidden', 'true');
+                }
+            }
+        } else {
+            // Fallback: construct a minimal button structure mimicking styles
+            newBtnWrapper = document.createElement('a');
+            newBtnWrapper.className = 'VDgVie btku5b fCrZyc NQYJvc FR7ZSc qVhvac OJeuxf';
+            const iconWrap = document.createElement('span');
+            iconWrap.className = 'd3o3Ad gJdC8e z1asCe Fp7My';
+            iconWrap.style.cssText = 'height:20px;line-height:20px;width:20px';
+            iconWrap.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" focusable="false" aria-hidden="true"><path d="M12 2C8.686 2 6 4.686 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"></path></svg>';
+            const labelWrap = document.createElement('div');
+            labelWrap.className = 'QuU3Wb sjVJQd';
+            const labelDiv = document.createElement('div');
+            labelDiv.textContent = t('openInMaps') || 'Open in Maps';
+            labelWrap.appendChild(labelDiv);
+            const iconOuter1 = document.createElement('div');
+            iconOuter1.className = 'niO4u';
+            const iconOuter2 = document.createElement('div');
+            iconOuter2.className = 'kHtcsd';
+            iconOuter2.appendChild(iconWrap);
+            iconOuter1.appendChild(iconOuter2);
+            newBtnWrapper.appendChild(iconOuter1);
+            newBtnWrapper.appendChild(labelWrap);
         }
+
+        newBtnWrapper.classList.add('open-in-maps-action-btn');
+
+        // Navigate on click/enter
+        const go = () => { window.location.href = buildMapsLink(); };
+        newBtnWrapper.addEventListener('click', (e) => { e.preventDefault(); go(); });
+        newBtnWrapper.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+
+        // Append after existing action (share) for side-by-side layout
+        bar.appendChild(newBtnWrapper);
     });
 }
 
-// Attempt to inject overlay buttons based on current showOverlay flag
-function attemptOverlayInjection() {
-    if (!showOverlay) return; // Respect user setting
+// Inject a tile in the local actions row (e.g., Strona/Trasa/Opinie/Udostępnij)
+function injectLocalActionIcons() {
+    if (!showOverlay) return;
 
-    // if address map is shown (the one right below search bar), make it clickable
-    if (addressMapContainer && !addressMapContainer.querySelector('.open-in-maps-extension-button')) {
-        const mapWrapperLinkEl = document.createElement('a');
-        mapWrapperLinkEl.text = t('openInMaps') || 'Open in Maps';
-        mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
-        addressMapContainer.style.position = 'relative';
-    
-        mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
-        // Add the button as an overlay instead of wrapping the entire container
-        addressMapContainer.appendChild(mapWrapperLinkEl);
-        window.setTimeout(function() {
-            mapWrapperLinkEl.style.opacity = '1';
-        }, 100);
+    // Rows that contain local action tiles
+    const rows = document.querySelectorAll('.zhZ3gf');
+    if (!rows || !rows.length) return;
+
+    rows.forEach((row) => {
+        // Avoid duplicates per row
+        if (row.querySelector('.open-in-maps-local-action')) return;
+
+        // Sample tile to clone for consistent layout
+        const sampleTile = row.querySelector('.bkaPDb');
+        if (!sampleTile) return;
+
+        const labelText = (t('openInMaps') || 'Open in Maps').trim();
+
+        // Clone the entire tile block
+        const newTile = sampleTile.cloneNode(true);
+
+        // Strip Google dynamic attrs to avoid their handlers
+        const stripAttrs = (el) => {
+            if (!el || !el.getAttributeNames) return;
+            for (const attr of el.getAttributeNames()) {
+                if (attr.startsWith('data-') || attr.startsWith('js') || attr === 'ssk' || attr === 'ping') {
+                    el.removeAttribute(attr);
+                }
+            }
+            el.childNodes && el.childNodes.forEach((child) => { if (child.nodeType === 1) stripAttrs(child); });
+        };
+        stripAttrs(newTile);
+
+        // Ensure click target is an anchor
+        let anchor = newTile.querySelector('a.n1obkb.mI8Pwc');
+        if (!anchor) {
+            const clickable = newTile.querySelector('.n1obkb.mI8Pwc') || newTile.querySelector('[role="button"].n1obkb');
+            if (clickable) {
+                const a = document.createElement('a');
+                a.className = 'n1obkb mI8Pwc';
+                while (clickable.firstChild) a.appendChild(clickable.firstChild);
+                clickable.replaceWith(a);
+                anchor = a;
+            }
+        }
+        if (!anchor) return;
+
+        anchor.setAttribute('href', buildMapsLink());
+        anchor.setAttribute('rel', 'noopener');
+        anchor.removeAttribute('role');
+        anchor.removeAttribute('tabindex');
+
+        // Update label
+        const labelSpan = newTile.querySelector('.PbOY2e');
+        if (labelSpan) labelSpan.textContent = labelText;
+
+        // Update icon (map pin)
+        const iconHolder = newTile.querySelector('.o7nARe');
+        if (iconHolder) {
+            let svg = iconHolder.querySelector('svg');
+            if (!svg) {
+                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                iconHolder.appendChild(svg);
+            }
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('width', '24');
+            svg.setAttribute('height', '24');
+            svg.setAttribute('focusable', 'false');
+            svg.setAttribute('aria-hidden', 'true');
+            svg.innerHTML = '<path d="M12 2C8.686 2 6 4.686 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />';
+        }
+
+        newTile.classList.add('open-in-maps-local-action');
+        row.appendChild(newTile);
+    });
+}
+
+function startObservingActionBars() {
+    if (actionBarObserver || !showOverlay) return;
+    try {
+        actionBarObserver = new MutationObserver((mutations) => {
+            let shouldInject = false;
+            for (const m of mutations) {
+                if (m.type === 'childList') {
+                    m.addedNodes && m.addedNodes.forEach((n) => {
+                        if (n.nodeType === 1) {
+                            const el = /** @type {Element} */ (n);
+                            if (el.classList && el.classList.contains('Uekwlc') && el.classList.contains('kHIBvd')) {
+                                shouldInject = true;
+                            } else if (el.querySelector && (el.querySelector('.Uekwlc.kHIBvd') || el.querySelector('.zhZ3gf'))) {
+                                shouldInject = true;
+                            }
+                        }
+                    });
+                }
+            }
+            if (shouldInject) {
+                // Debounce a bit to allow layout to settle
+                setTimeout(() => { injectActionButtons(); injectLocalActionIcons(); }, 50);
+            }
+        });
+        actionBarObserver.observe(document.documentElement || document.body, { childList: true, subtree: true });
+    } catch (_) {
+        // no-op
     }
+}
 
-    // if places map is shown (the one right below search bar), make it clickable
-    if (placesMapContainer && !placesMapContainer.querySelector('.open-in-maps-extension-button')) {
-        const mapWrapperLinkEl = document.createElement('a');
-        mapWrapperLinkEl.text = t('openInMaps') || 'Open in Maps';
-        mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
-
-        placesMapContainer.style.position = 'relative';
-        mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
-        placesMapContainer.append(mapWrapperLinkEl);
-        window.setTimeout(function() {
-            mapWrapperLinkEl.style.opacity = '1';
-        }, 100);
-    }
-
-    // if "green tinted country map" is shown, add a new button within that map
-    if (countryMapContainer && !countryMapContainer.querySelector('.open-in-maps-extension-button')) {
-        const mapWrapperLinkEl = document.createElement('a');
-        mapWrapperLinkEl.text = t('openInMaps') || 'Open in Maps';
-        mapWrapperLinkEl.classList = 'open-in-maps-extension-button';
-        mapWrapperLinkEl && (mapWrapperLinkEl.href = buildMapsLink());
-        countryMapContainer.append(mapWrapperLinkEl);
-        window.setTimeout(function() {
-            mapWrapperLinkEl.style.opacity = '1';
-        }, 100);
+function stopObservingActionBars() {
+    if (actionBarObserver) {
+        try { actionBarObserver.disconnect(); } catch (_) {}
+        actionBarObserver = null;
     }
 }
 
@@ -180,26 +318,27 @@ if (smallMapThumbnailElement.length) {
     }, 0)
 }
 
-// Inject overlays after settings load (single read)
+// Inject action buttons after settings load (single read)
 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     chrome.storage.sync.get({ showOverlay: false }, (res) => {
         showOverlay = Boolean(res.showOverlay);
-        attemptOverlayInjection();
+        injectActionButtons();
+        injectLocalActionIcons();
+        if (showOverlay) startObservingActionBars(); else stopObservingActionBars();
     });
     if (chrome.storage.onChanged) {
         chrome.storage.onChanged.addListener((changes, area) => {
             if (area === 'sync' && changes.showOverlay) {
                 showOverlay = Boolean(changes.showOverlay.newValue);
-                if (!showOverlay) {
-                    removeOverlaysResetPositions();
-                } else {
-                    attemptOverlayInjection();
-                }
+                if (!showOverlay) { removeActionButtons(); removeLocalActionIcons(); stopObservingActionBars(); }
+                else { injectActionButtons(); injectLocalActionIcons(); startObservingActionBars(); }
             }
         });
     }
 } else {
     // Fallback
-    attemptOverlayInjection();
+    injectActionButtons();
+    injectLocalActionIcons();
+    startObservingActionBars();
 }
 }, 250);

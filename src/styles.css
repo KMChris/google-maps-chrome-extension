@@ -1,57 +1,9 @@
-.open-in-maps-extension-button {
-    opacity: 0;
-    font-size: 16px;
-    position: absolute;
-    bottom: 0;
-    text-align: center;
-    cursor: pointer;
-    left: calc(50% - 202px / 2);
-    width: 160px;
-    padding: 10px 12px;
-    margin: 8px;
-    line-height: 22px;
-    border-radius: 16px;
-    text-decoration: none;
-    transition: opacity 0.3s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
-
-    /* Theming via prefers-color-scheme (mirrors ui.css variables) */
-    background-color: #202124;
-    color: #e8eaed;
-    border: 1px solid #3c4043;
-}
-
-@media (prefers-color-scheme: light) {
-    .open-in-maps-extension-button {
-        background-color: #ffffff;
-        color: #202124;
-        border-color: #dadce0;
-    }
-}
-
-.open-in-maps-extension-button:visited { color: inherit; }
-
-.open-in-maps-extension-button--small {
-    border-radius: 12px;
-    border: 2px solid #3a3f50;
-    box-sizing: content-box;
-    color: #fff;
-    font-size: 14px;
-    height: 26px;
-    line-height: 26px;
-    padding: 0 5px;
-}
-
-.open-in-maps-extension-button--small span {
-    padding: 0;
-    display: block;
-}
-
-.open-in-maps-extension-button--small:hover, 
-.open-in-maps-extension-button--small:focus, 
-.open-in-maps-extension-button--small:visited {
-    color: #fff;
-}
-    
 .remove-text-underline:hover {
     text-decoration: none !important;
+}
+
+/* Spacing for the injected action button next to Google's action bar */
+.open-in-maps-action-btn {
+    margin-inline-start: 8px; /* add space to the left in LTR; adapts for RTL */
+    white-space: nowrap; /* avoid wrapping label onto the next line */
 }
