@@ -17,8 +17,17 @@
   "optionsTitle": {
     "message": "Linki do Map Google | Opcje"
   },
-  "option_showOverlay_label": {
-    "message": "Pokaż przycisk nakładki na mapach"
+  "option_enableExtension_label": {
+    "message": "Włącz rozszerzenie"
+  },
+  "option_enableActionButton_label": {
+    "message": "Dodaj przycisk \"Otwórz w Mapach\" obok paska akcji"
+  },
+  "option_enableLocalActionTile_label": {
+    "message": "Dodaj kafelek \"Otwórz w Mapach\" w wierszu działań lokalnych"
+  },
+  "option_enableMapsTab_label": {
+    "message": "Dodaj kartę 'Mapy' do górnej nawigacji"
   },
   "aboutText1": {
     "message": "Otwarty projekt open-source, który przywraca kartę/przycisk Map na stronie wyników Google i umożliwia klikanie miniaturowej mapy."

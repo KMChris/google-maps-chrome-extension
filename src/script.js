@@ -1,7 +1,11 @@
 setTimeout(() => {
 // i18n helper and settings
 const t = (key) => (typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getMessage(key) : '') || key;
-let showOverlay = false; // default off
+// settings
+let enableExtension = false; // master toggle
+let enableActionButton = false; // feature: action bar button
+let enableMapsTab = false; // feature: top navigation "Maps" tab
+let enableLocalActionTile = false; // feature: local actions tile
 let actionBarObserver = null;
 
 // builds URL search query from search params, handles different domains scenarios
@@ -48,7 +52,7 @@ function removeLocalActionIcons() {
 
 // Inject an action-style button next to the action bar (.Uekwlc.kHIBvd) instead of an overlay
 function injectActionButtons() {
-    if (!showOverlay) return; // Respect user setting
+    if (!enableExtension || !enableActionButton) return; // Respect user settings
 
     const actionBars = document.querySelectorAll('.Uekwlc.kHIBvd');
     if (!actionBars || !actionBars.length) return;
@@ -122,7 +126,7 @@ function injectActionButtons() {
 
 // Inject a tile in the local actions row (e.g., Strona/Trasa/Opinie/Udostępnij)
 function injectLocalActionIcons() {
-    if (!showOverlay) return;
+    if (!enableExtension || !enableLocalActionTile) return;
 
     // Rows that contain local action tiles
     const rows = document.querySelectorAll('.zhZ3gf');
@@ -198,7 +202,7 @@ function injectLocalActionIcons() {
 }
 
 function startObservingActionBars() {
-    if (actionBarObserver || !showOverlay) return;
+    if (actionBarObserver || !enableExtension || (!enableActionButton && !enableLocalActionTile)) return;
     try {
         actionBarObserver = new MutationObserver((mutations) => {
             let shouldInject = false;
@@ -234,109 +238,192 @@ function stopObservingActionBars() {
     }
 }
 
-// if tabs exist, add the maps tab
-// we start with "tabs" variant first because its only used for the top-most navigation
-// while round buttons are also used as subnavigation in search results, images etc.
-if (tabsContainer && !hasMapTabAlreadyDisplayed()) {
-    const tabButtonWrapper = document.createElement('div');
-    tabButtonWrapper.role = 'listitem';
-    const tabsButton = document.createElement('a');
+function injectTopUiAndThumbnails() {
+    if (!enableExtension) return;
+    // Tabs
+    if (enableMapsTab && tabsContainer && !hasMapTabAlreadyDisplayed()) {
+        const tabButtonWrapper = document.createElement('div');
+        tabButtonWrapper.classList.add('gmaps-ext-tab');
+        tabButtonWrapper.role = 'listitem';
+        const tabsButton = document.createElement('a');
 
-    const mapSpan = document.createElement('span');
-    mapSpan.classList.add('R1QWuf');
-    // In the tabs we want short label like other tabs
-    mapSpan.textContent = t('mapsTabLabel') || 'Maps';
+        const mapSpan = document.createElement('span');
+        mapSpan.classList.add('R1QWuf');
+        // In the tabs we want short label like other tabs
+        mapSpan.textContent = t('mapsTabLabel') || 'Maps';
 
-    const innerDiv = document.createElement('div');
-    innerDiv.classList.add('mXwfNd');
-    innerDiv.appendChild(mapSpan);
+        const innerDiv = document.createElement('div');
+        innerDiv.classList.add('mXwfNd');
+        innerDiv.appendChild(mapSpan);
 
-    tabsButton.classList.add('C6AK7c');
-    tabButtonWrapper.appendChild(tabsButton);
-    tabsButton.appendChild(innerDiv);
-    tabsButton && (tabsButton.href = buildMapsLink());
-    tabsButton.classList.add('remove-text-underline');
+        tabsButton.classList.add('C6AK7c');
+        tabButtonWrapper.appendChild(tabsButton);
+        tabsButton.appendChild(innerDiv);
+        tabsButton && (tabsButton.href = buildMapsLink());
+        tabsButton.classList.add('remove-text-underline');
 
-    // Insert as third tab (after the second child)
-    const children = tabsContainer.children;
-    if (children.length >= 2) {
-        tabsContainer.insertBefore(tabButtonWrapper, children[2]);
-    } else {
-        tabsContainer.appendChild(tabButtonWrapper);
+        // Insert as third tab (after the second child)
+        const children = tabsContainer.children;
+        if (children.length >= 2) {
+            tabsContainer.insertBefore(tabButtonWrapper, children[2]);
+        } else {
+            tabsContainer.appendChild(tabButtonWrapper);
+        }
+        alreadyHasMapsButtonAppended = true;
     }
-    alreadyHasMapsButtonAppended = true;
-}
 
-// ---------------------------
-// if buttons exist -AND- we HAVE NOT appended a different variant already,
-// add the maps round button
-if (buttonContainer && !alreadyHasMapsButtonAppended) {
-    const mapsButton = document.createElement('a');
-    mapsButton.classList.add('nPDzT', 'T3FoJb');
+    // Bubble button
+    if (buttonContainer && !alreadyHasMapsButtonAppended) {
+        const mapsButton = document.createElement('a');
+        mapsButton.classList.add('gmaps-ext-bubble');
+        mapsButton.classList.add('nPDzT', 'T3FoJb');
 
-    const mapDiv = document.createElement('div');
-    mapDiv.jsname = 'bVqjv';
-    mapDiv.classList.add('GKS7s');
+        const mapDiv = document.createElement('div');
+        mapDiv.jsname = 'bVqjv';
+        mapDiv.classList.add('GKS7s');
 
-    const mapSpan = document.createElement('span');
-    mapSpan.classList.add('FMKtTb', 'UqcIvb');
-    mapSpan.jsname = 'pIvPIe';
-    mapSpan.textContent = t('mapsBubbleLabel') || 'Maps';
+        const mapSpan = document.createElement('span');
+        mapSpan.classList.add('FMKtTb', 'UqcIvb');
+        mapSpan.jsname = 'pIvPIe';
+        mapSpan.textContent = t('mapsBubbleLabel') || 'Maps';
 
-    mapDiv.appendChild(mapSpan);
-    mapsButton.appendChild(mapDiv);
-    
-    mapsButton && (mapsButton.href = buildMapsLink());
-    buttonContainer.prepend(mapsButton);
-
-    alreadyHasMapsButtonAppended = true;
-}
-
-
-// if map thumbnail exists
-if (smallMapThumbnailElement.length) {
-    setTimeout(() => {
-        smallMapThumbnailElement.forEach((elementSelector) => {
-            const targettedElement = document.querySelector(elementSelector);
-            
-            // check if element exists on the page
-            if (targettedElement) {
-                if (targettedElement.parentNode.tagName.toLowerCase() === 'a') {
-                    // if its already an a tag, just update its href attribute with the generated maps link
-                    targettedElement.parentNode.href = buildMapsLink();
-                } else {
-                    // otherwise create a new a tag with href attribute set to generated maps link, then wrap it around the element
-                    const wrapperLink = document.createElement('a');
-                    wrapperLink.href = buildMapsLink();
-                    targettedElement.parentNode.insertBefore(wrapperLink, targettedElement);
-                    targettedElement.parentNode.removeChild(targettedElement);
-                    wrapperLink.appendChild(targettedElement);
-                }
-            }
-        });
+        mapDiv.appendChild(mapSpan);
+        mapsButton.appendChild(mapDiv);
         
-    }, 0)
+        mapsButton && (mapsButton.href = buildMapsLink());
+        buttonContainer.prepend(mapsButton);
+
+        alreadyHasMapsButtonAppended = true;
+    }
+
+    // Thumbnail wrapper
+    if (smallMapThumbnailElement.length) {
+        setTimeout(() => {
+            smallMapThumbnailElement.forEach((elementSelector) => {
+                const targettedElement = document.querySelector(elementSelector);
+                
+                // check if element exists on the page
+                if (targettedElement) {
+                    const parent = targettedElement.parentNode;
+                    if (parent && parent.tagName && parent.tagName.toLowerCase() === 'a') {
+                        // update only if it's our wrapper
+                        if (parent.classList && parent.classList.contains('gmaps-ext-thumb')) {
+                            parent.href = buildMapsLink();
+                        }
+                    } else {
+                        // otherwise create a new a tag with href attribute set to generated maps link, then wrap it around the element
+                        const wrapperLink = document.createElement('a');
+                        wrapperLink.classList.add('gmaps-ext-thumb');
+                        wrapperLink.href = buildMapsLink();
+                        targettedElement.parentNode.insertBefore(wrapperLink, targettedElement);
+                        targettedElement.parentNode.removeChild(targettedElement);
+                        wrapperLink.appendChild(targettedElement);
+                    }
+                }
+            });
+            
+        }, 0)
+    }
 }
 
-// Inject action buttons after settings load (single read)
-if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-    chrome.storage.sync.get({ showOverlay: false }, (res) => {
-        showOverlay = Boolean(res.showOverlay);
-        injectActionButtons();
-        injectLocalActionIcons();
-        if (showOverlay) startObservingActionBars(); else stopObservingActionBars();
+function removeTopUiAndThumbnails() {
+    try {
+        // Remove our Maps tab
+        document.querySelectorAll('.gmaps-ext-tab').forEach((el) => el.remove());
+        // Remove our bubble button
+        document.querySelectorAll('.gmaps-ext-bubble').forEach((el) => el.remove());
+        // Unwrap thumbnails
+        document.querySelectorAll('a.gmaps-ext-thumb').forEach((anchor) => {
+            const parent = anchor.parentNode;
+            if (!parent) return;
+            const children = Array.from(anchor.childNodes);
+            children.forEach((child) => parent.insertBefore(child, anchor));
+            parent.removeChild(anchor);
+        });
+    } catch (_) { /* no-op */ }
+}
+
+// Load settings (with legacy migration support)
+if (typeof chrome !== 'undefined' && chrome.storage) {
+    const keys = ['enableExtension','enableActionButton','enableLocalActionTile'];
+    const defaults = { };
+    const readAll = (cb) => {
+        const done = (syncRes = {}, localRes = {}) => {
+            const pick = (k, defVal = true) => (typeof syncRes[k] === 'boolean' ? syncRes[k] : (typeof localRes[k] === 'boolean' ? localRes[k] : defVal));
+            cb({
+                enableExtension: pick('enableExtension', true),
+                enableActionButton: pick('enableActionButton', true),
+                enableMapsTab: pick('enableMapsTab', true),
+                enableLocalActionTile: pick('enableLocalActionTile', true),
+            });
+        };
+        try {
+            chrome.storage?.sync?.get(keys, (syncRes) => {
+                chrome.storage?.local?.get(keys, (localRes) => done(syncRes, localRes));
+            });
+        } catch (_) {
+            chrome.storage?.local?.get(keys, (localRes) => done({}, localRes));
+        }
+    };
+
+    readAll((res) => {
+        enableExtension = !!res.enableExtension;
+        enableActionButton = !!res.enableActionButton;
+        enableMapsTab = !!res.enableMapsTab;
+        enableLocalActionTile = !!res.enableLocalActionTile;
+
+    // Core UI
+    if (enableExtension) injectTopUiAndThumbnails(); else removeTopUiAndThumbnails();
+    // Feature UIs
+    if (enableExtension && enableActionButton) injectActionButtons(); else removeActionButtons();
+    if (enableExtension && !enableMapsTab) { document.querySelectorAll('.gmaps-ext-tab').forEach((el) => el.remove()); }
+    if (enableExtension && enableLocalActionTile) injectLocalActionIcons(); else removeLocalActionIcons();
+    if (enableExtension && (enableActionButton || enableLocalActionTile)) startObservingActionBars(); else stopObservingActionBars();
+
+        // Note: do not write defaults from content script to avoid overriding user changes from popup/options
     });
     if (chrome.storage.onChanged) {
         chrome.storage.onChanged.addListener((changes, area) => {
-            if (area === 'sync' && changes.showOverlay) {
-                showOverlay = Boolean(changes.showOverlay.newValue);
-                if (!showOverlay) { removeActionButtons(); removeLocalActionIcons(); stopObservingActionBars(); }
-                else { injectActionButtons(); injectLocalActionIcons(); startObservingActionBars(); }
+            if (area !== 'sync' && area !== 'local') return;
+            let affected = false;
+            if (Object.prototype.hasOwnProperty.call(changes, 'enableExtension')) {
+                enableExtension = Boolean(changes.enableExtension.newValue);
+                affected = true;
+            }
+            if (Object.prototype.hasOwnProperty.call(changes, 'enableActionButton')) {
+                enableActionButton = Boolean(changes.enableActionButton.newValue);
+                affected = true;
+            }
+            if (Object.prototype.hasOwnProperty.call(changes, 'enableMapsTab')) {
+                enableMapsTab = Boolean(changes.enableMapsTab.newValue);
+                affected = true;
+            }
+            if (Object.prototype.hasOwnProperty.call(changes, 'enableLocalActionTile')) {
+                enableLocalActionTile = Boolean(changes.enableLocalActionTile.newValue);
+                affected = true;
+            }
+
+            if (!affected) return;
+
+            if (!enableExtension) {
+                // Master off: remove everything
+                removeActionButtons();
+                removeLocalActionIcons();
+                removeTopUiAndThumbnails();
+                stopObservingActionBars();
+            } else {
+                // Master on: keep top UI, then adjust features individually
+                injectTopUiAndThumbnails();
+                if (enableActionButton) injectActionButtons(); else removeActionButtons();
+                if (!enableMapsTab) document.querySelectorAll('.gmaps-ext-tab').forEach((el) => el.remove());
+                if (enableLocalActionTile) injectLocalActionIcons(); else removeLocalActionIcons();
+                if (enableActionButton || enableLocalActionTile) startObservingActionBars(); else stopObservingActionBars();
             }
         });
     }
 } else {
     // Fallback
+    enableExtension = true; enableActionButton = true; enableLocalActionTile = true;
     injectActionButtons();
     injectLocalActionIcons();
     startObservingActionBars();

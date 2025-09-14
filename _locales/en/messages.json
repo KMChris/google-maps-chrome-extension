@@ -17,8 +17,17 @@
   "optionsTitle": {
     "message": "Google Maps Links | Options"
   },
-  "option_showOverlay_label": {
-    "message": "Show overlay button on maps"
+  "option_enableExtension_label": {
+    "message": "Enable extension"
+  },
+  "option_enableActionButton_label": {
+    "message": "Add \"Open in Maps\" button next to the action bar"
+  },
+  "option_enableLocalActionTile_label": {
+    "message": "Add \"Open in Maps\" tile in the local actions row"
+  },
+  "option_enableMapsTab_label": {
+    "message": "Add 'Maps' tab to the top navigation"
   },
   "aboutText1": {
     "message": "Open-source extension that brings back the Google Maps tab/button on the search page and makes the small map thumbnail clickable."
