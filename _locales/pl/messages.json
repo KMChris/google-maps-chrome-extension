@@ -34,5 +34,8 @@
   },
   "aboutText2": {
     "message": "Kod źródłowy i zgłoszenia problemów znajdziesz na <a href=\"https://github.com/mrakowski0/readd-gmaps-links-chrome-extension\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>. Zapraszamy do kontrybucji."
+  },
+  "operaNote": {
+    "message": "<strong>Dla użytkowników Opery</strong>: Wejdź w ustawienia rozszerzeń w Operze, znajdź to rozszerzenie i zaznacz opcję \"Zezwalaj na dostęp do wyników strony wyszukiwania\", a następnie odśwież stronę."
   }
 }

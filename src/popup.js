@@ -25,6 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (label_enableLocalActionTile) label_enableLocalActionTile.textContent = t('option_enableLocalActionTile_label') || 'Add "Open in Maps" tile in the local actions row';
   if (about1El) about1El.innerHTML = t('aboutText1') || t('extensionDescription');
   if (about2El) about2El.innerHTML = t('aboutText2') || '';
+  // Show an extra note for Opera users only (in a separate line/paragraph)
+  try {
+    const isOpera = /OPR\//.test(navigator.userAgent) || (typeof window !== 'undefined' && window.opr && window.opr.addons);
+    if (isOpera) {
+    const operaNote = t('operaNote') || 'For OPERA users: You need to go to your extension settings in Opera, find this extension and tick the "Allow access to search page results" then refresh the page.';
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.innerHTML = operaNote;
+      if (about2El && about2El.parentNode) {
+        about2El.parentNode.insertBefore(p, about2El.nextSibling);
+      } else if (about1El && about1El.parentNode) {
+        about1El.parentNode.insertBefore(p, about1El.nextSibling);
+      }
+    }
+  } catch { /* no-op */ }
   document.title = t('extensionName') || 'Google Maps Links';
 
   // Read from both areas; defaults: all enabled by default
